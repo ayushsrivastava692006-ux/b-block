@@ -94,12 +94,6 @@
         </div>
       </div>
 
-      <!-- Optional Instagram Field -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Instagram ID / Link (Optional)</label>
-        <input id="f_insta" type="text" placeholder="@username or profile link" 
-          class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
-      </div>
 
       <!-- Status Messages -->
       <div id="formError" class="text-[11px] text-red-500 font-bold min-h-[14px]"></div>
@@ -156,7 +150,6 @@
       const dob = document.getElementById("f_dob").value;
       const phone = document.getElementById("f_phone").value.trim();
       const inHostel = document.getElementById("f_inHostel").value;
-      const insta = document.getElementById("f_insta").value.trim();
       const photoFile = document.getElementById("f_photo").files[0];
       
       const err = document.getElementById("formError");
@@ -221,7 +214,6 @@
           dob, 
           phone, 
           inhostel: inHostel, 
-          instagram: insta, 
           photo: photoURL
         }]);
 
