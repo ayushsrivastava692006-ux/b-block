@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B-BLOCK | Directory Explorer</title>
+  
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://srqdvxmektxxvucehxow.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_Ed61_7Gok7xocUeCRQ5Oqg_G2QxKLu6";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f1f5ff 0%, #ffffff 50%, #fffbf0 100%); color: #1e293b; overflow-x: hidden; min-height: 100vh; }
+    h1, h2, h3, .outfit { font-family: 'Outfit', sans-serif; }
+    .glass-light { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); }
+    .shadow-premium { box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.1); }
+    .view-tab { padding: 0.6rem 2.22rem; border-radius: 9999px; font-weight: 700; font-size: 0.875rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); color: #64748b; background: #f1f5f9; border: 1px solid #e2e8f0; position: relative; }
+    .view-tab:hover { border-color: #fbbf24; background: white; box-shadow: 0 8px 20px -5px rgba(251, 191, 36, 0.3); transform: translateY(-2px); color: #0f172a; }
+    .view-tab.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3); }
+    .view-tab.active::after { content: ""; position: absolute; bottom: -4px; left: 20%; right: 20%; height: 3px; background: #fbbf24; border-radius: 10px; box-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+    @keyframes slideFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-content { animation: slideFadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    .search-wrapper { background: white; border: 2px solid #cbd5e1; border-radius: 1.25rem; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+    .search-wrapper:focus-within { border-color: #fbbf24; box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.15); transform: translateY(-1px); }
+    .id-card-light { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(15px); border-radius: 1.5rem; border: 2px solid #cbd5e1; min-height: 110px; height: 100%; align-self: start; display: flex; align-items: center; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; position: relative; }
+    .id-card-light:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15); border-color: #fbbf24; }
+    .id-side-accent { width: 12px; height: 100%; position: absolute; left: 0; top: 0; background: #fbbf24; transition: 0.3s; }
+    .group:hover .id-side-accent { width: 16px; background: #0f172a; }
+    .id-pfp { width: 75px; height: 75px; margin-left: 20px; border-radius: 1rem; border: 3px solid #f1f5f9; object-fit: cover; flex-shrink: 0; transition: 0.4s; }
+    .group:hover .id-pfp { border-color: #fbbf24; transform: scale(1.05); }
+    .id-content { flex: 1; padding: 12px 20px; }
+    .event-card { background: white; border-radius: 2rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); transition: all 0.3s ease; border: 2px solid #cbd5e1; }
+    .event-card:hover { transform: scale(1.02); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); }
+    .aura-blob { position: fixed; width: 600px; height: 600px; border-radius: 50%; filter: blur(140px); z-index: -1; opacity: 0.25; pointer-events: none; }
+    .aura-indigo { top: -150px; left: -150px; background: #6366f1; }
+    .aura-amber { bottom: -150px; right: -150px; background: #fbbf24; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .dropdown-container { position: relative; width: 100%; max-width: 400px; }
+    .dropdown-menu { display: none; position: absolute; top: calc(100% + 10px); left: 0; right: 0; background: white; border: 2px solid #cbd5e1; border-radius: 1.25rem; z-index: 100; box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.2); max-height: 250px; overflow-y: auto; animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .dropdown-menu.show { display: block; border-color: #fbbf24; }
+    .dropdown-item { padding: 12px 20px; font-size: 0.875rem; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; }
+    .dropdown-item:hover { background: #fff9ea; color: #fbbf24; }
+    .dropdown-item.active { background: #0f172a; color: #fbbf24; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="selection:bg-amber-100 selection:text-amber-900">
+
+  <!-- AURA BACKGROUND MIXTURE -->
+  <div class="aura-blob aura-indigo"></div>
+  <div class="aura-blob aura-amber"></div>
+
+  <!-- NAVIGATION -->
+  <header class="fixed top-0 w-full z-50 p-4 md:p-6 bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <button onclick="window.location.href='index.html'" class="flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-slate-200 hover:bg-slate-900 hover:text-amber-400 hover:border-slate-900 transition-all duration-300 font-black text-xs uppercase tracking-tighter text-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-0.5 active:scale-95 group">
+        <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i> Home
+      </button>
+      
+      <div class="flex items-baseline gap-2 outfit">
+         <span class="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">B-BLOCK</span>
+         <span class="text-sm md:text-base font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100 uppercase tracking-[0.2em]">Directory</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- VIEW NAV (STICKY REORDERED) -->
+  <div class="fixed top-20 md:top-24 w-full z-40 bg-white/50 backdrop-blur-sm py-4 border-b border-slate-50 overflow-x-auto no-scrollbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-start md:justify-center gap-8 min-w-max">
+       <button onclick="switchView('active')" id="tab-active" class="view-tab">Active Students</button>
+       <button onclick="switchView('total')" id="tab-total" class="view-tab">All Members</button>
+       <button onclick="switchView('events')" id="tab-events" class="view-tab">Events & Life</button>
+       <button onclick="switchView('sessions')" id="tab-sessions" class="view-tab">Academic Seasons</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <main class="max-w-7xl mx-auto pt-52 pb-20 px-6 relative z-10">
+    <!-- Dynamic Header & Search -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div>
+        <h1 id="viewTitle" class="text-4xl md:text-6xl font-black text-slate-900 outfit tracking-tighter">Directory</h1>
+        <p id="viewDesc" class="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-2">B-BLOCK RESIDENCE RECORDS</p>
+      </div>
+
+      <!-- Advanced Search Bar -->
+      <div id="searchContainer" class="search-wrapper flex items-center gap-3 px-5 py-3 w-full max-w-md">
+        <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+        <input type="text" id="memberSearch" placeholder="Search by name..." 
+               class="bg-transparent border-none outline-none w-full text-sm font-bold text-slate-700 placeholder:text-slate-300">
+      </div>
+
+      <!-- Session Selection Bar (Academic Only) -->
+      <div id="sessionContainer" class="hidden dropdown-container">
+        <div onclick="toggleSessionDropdown()" class="search-wrapper flex items-center justify-between px-5 py-3 cursor-pointer">
+           <div class="flex items-center gap-3">
+             <i data-lucide="layers" class="w-5 h-5 text-slate-400"></i>
+             <span id="selectedSessionLabel" class="text-sm font-bold text-slate-700">Select Session Batch...</span>
+           </div>
+           <i data-lucide="chevron-down" id="dropdownIcon" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+        </div>
+        <div id="sessionDropdownMenu" class="dropdown-menu no-scrollbar">
+           <!-- Items via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="contentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start min-h-[50vh] transition-all">
+       <!-- Loading State -->
+       <div class="col-span-full flex flex-col items-center justify-center space-y-4 opacity-40">
+          <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-xs font-black uppercase tracking-widest">Accessing records...</p>
+       </div>
+    </div>
+  </main>
+
+  <!-- STUDENT MODAL (Premium Landscape Card) -->
+  <div id="stuModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center z-[1000] opacity-0 transition-opacity duration-300 px-4" onclick="closeModal(event)">
+    
+    <div id="stuBox" class="bg-white/95 rounded-[2.5rem] max-w-2xl w-full shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] transform scale-95 transition-all duration-500 overflow-hidden flex flex-col md:flex-row relative border-2 border-amber-400/30" onclick="event.stopPropagation()">
+      
+      <!-- Action Buttons (Top Right) -->
+      <div class="absolute top-5 right-5 z-20 flex gap-2">
+        <button onclick="downloadStudentPhoto()" title="Download Photo" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-900/10 backdrop-blur-md hover:bg-slate-900/20 text-slate-800 transition-all shadow-sm border border-slate-900/10">
+          <i data-lucide="download" class="w-5 h-5"></i>
+        </button>
+        <button onclick="closeModal()" title="Close" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-900/10 backdrop-blur-md hover:bg-slate-900/20 text-slate-800 transition-all text-xl shadow-sm border border-slate-900/10">&times;</button>
+      </div>
+      
+      <!-- Left Side: Immersive Photo (No Gap) -->
+      <div class="relative w-full md:w-[45%] h-64 md:h-full min-h-[400px] bg-slate-100 overflow-hidden">
+        <img id="mImg" src="" class="w-full h-full object-cover">
+        <!-- Visual Accent Overlay -->
+        <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+        <div class="absolute bottom-6 left-6 flex items-center gap-2">
+           <span id="mStatusBadge" class="px-3 py-1 bg-amber-400 text-slate-900 font-black text-[9px] uppercase tracking-widest rounded-full shadow-lg">Resident</span>
+        </div>
+      </div>
+
+      <!-- Right Side: Clean Details -->
+      <div class="w-full md:w-[55%] p-8 md:p-10 flex flex-col justify-center space-y-6">
+        
+        <div class="space-y-1">
+          <p class="text-amber-600 font-extrabold text-[10px] uppercase tracking-[0.3em]">B-BLOCK Member</p>
+          <h2 id="mName" class="text-3xl font-black text-slate-900 outfit leading-none"></h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Branch / Course</p>
+            <p id="mBranch" class="text-sm font-bold text-slate-800"></p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Room Reference</p>
+            <p id="mRoom" class="text-sm font-bold text-slate-800"></p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Academic Batch</p>
+            <p id="mSession" class="text-sm font-bold text-slate-800"></p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Day of Birth</p>
+            <p id="mDOB" class="text-sm font-bold text-slate-800"></p>
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-slate-100"></div>
+
+        <div class="flex items-center justify-between pt-2">
+           <div id="mSocials" class="flex gap-4">
+              <!-- Icons via JS -->
+           </div>
+           <a id="mCallBtn" href="#" class="bg-slate-900 text-white px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-amber-400 hover:text-slate-900 transition-all shadow-xl hover:-translate-y-1">Call Now</a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    let membersData = [];
+    let currentView = '';
+
+    // NEW: Seniority Logic
+    let seniorityMap = {};
+    function calculateSeniority() {
+       const sessions = [...new Set(membersData.map(s => s.session).filter(Boolean))];
+       // Sort sessions by start year descending (Newest first)
+       sessions.sort((a,b) => {
+         const yearA = parseInt(a.split('-')[0]) || 0;
+         const yearB = parseInt(b.split('-')[0]) || 0;
+         return yearB - yearA;
+       });
+       
+       const ranks = ["Junior", "J Senior", "S Senior", "D Senior"];
+       sessions.forEach((s, i) => {
+          seniorityMap[s] = ranks[i] || "Most Senior";
+       });
+    }
+
+    // NEW: Session Dropdown Generation
+    function toggleSessionDropdown() {
+       const menu = document.getElementById('sessionDropdownMenu');
+       const icon = document.getElementById('dropdownIcon');
+       menu.classList.toggle('show');
+       icon.classList.toggle('rotate-180');
+    }
+
+    function renderSessionPills() {
+       const sessions = [...new Set(membersData.map(s => s.session).filter(Boolean))];
+       sessions.sort((a,b) => parseInt(b.split('-')[0]) - parseInt(a.split('-')[0]));
+       
+       const menu = document.getElementById('sessionDropdownMenu');
+       menu.innerHTML = `
+         <div onclick="filterBySession('')" class="dropdown-item">All Sessions <i data-lucide="check" class="w-4 h-4 opacity-0"></i></div>
+         ${sessions.map(s => `
+           <div onclick="filterBySession('${s}')" class="dropdown-item" data-session="${s}">${s} <i data-lucide="check" class="w-4 h-4 opacity-0"></i></div>
+         `).join('')}
+       `;
+       lucide.createIcons();
+    }
+
+    function filterBySession(session) {
+       document.getElementById('selectedSessionLabel').innerText = session ? `Session: ${session}` : "All Session Batches";
+       document.getElementById('sessionDropdownMenu').classList.remove('show');
+       document.getElementById('dropdownIcon').classList.remove('rotate-180');
+       
+       let filtered = membersData;
+       if (session) {
+          filtered = membersData.filter(s => s.session === session);
+       }
+       renderSessions(filtered);
+    }
+
+    // 1. NAVIGATION LOGIC
+    async function switchView(view) {
+      if (currentView === view) return;
+      currentView = view;
+
+      // Update Tabs
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      const activeTab = document.getElementById(`tab-${view}`);
+      if (activeTab) activeTab.classList.add('active');
+
+      const title = document.getElementById('viewTitle');
+      const desc = document.getElementById('viewDesc');
+      const grid = document.getElementById('contentGrid');
+      const search = document.getElementById('searchContainer');
+      const sessionNav = document.getElementById('sessionContainer');
+
+      // Update UI Header
+      if (view === 'total') { 
+        title.innerText = 'Total Members'; desc.innerText = 'THE COMPLETE B-BLOCK LEGACY'; 
+        search.classList.remove('hidden'); sessionNav.classList.add('hidden');
+      }
+      if (view === 'active') { 
+        title.innerText = 'Active Residents'; desc.innerText = 'STUDENTS CURRENTLY IN THE HOSTEL'; 
+        search.classList.remove('hidden'); sessionNav.classList.add('hidden');
+      }
+      if (view === 'sessions') { 
+        title.innerText = 'Academic Seasons'; desc.innerText = 'DIRECTORY GROUPED BY BATCH'; 
+        search.classList.add('hidden'); sessionNav.classList.remove('hidden');
+      }
+      if (view === 'events') { 
+        title.innerText = 'Hostel Life'; desc.innerText = 'MEMORIES & CELEBRATIONS'; 
+        search.classList.add('hidden'); sessionNav.classList.add('hidden');
+      }
+
+      // Reset Grid
+      grid.innerHTML = `<div class="col-span-full py-20 flex flex-col items-center justify-center space-y-4 opacity-40"><div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>`;
+      grid.classList.remove('animate-content');
+
+      grid.classList.remove('md:grid-cols-2', 'lg:grid-cols-2', 'lg:grid-cols-3');
+      if (view === 'events') { renderEvents(); return; }
+
+      // Fetch / Filter Data
+      if (membersData.length === 0) {
+        const { data, error } = await window.supabaseClient.from('students').select('*').order('name');
+        if (error) { grid.innerHTML = `<p class="col-span-full text-center py-20 font-bold text-red-400">Error Connection to Records</p>`; return; }
+        membersData = data || [];
+        calculateSeniority();
+      }
+
+      if (view === 'sessions') renderSessionPills();
+      applyCurrentFilter();
+    }
+
+    // NEW: Search and Filter Logic
+    function applyCurrentFilter() {
+      const searchVal = document.getElementById('memberSearch').value.toLowerCase().trim();
+      let filtered = membersData;
+
+      if (currentView === 'active') filtered = membersData.filter(s => (s.inhostel || '').toLowerCase() === 'yes');
+      
+      if (searchVal) {
+        filtered = filtered.filter(s => (s.name || '').toLowerCase().includes(searchVal));
+      }
+
+      if (currentView === 'sessions') { 
+         renderSessions(filtered); 
+      } else { 
+         renderMembers(filtered); 
+      }
+    }
+
+    document.getElementById('memberSearch').addEventListener('input', applyCurrentFilter);
+
+    // 2. RENDERING LOGIC
+    function renderMembers(data) {
+      const grid = document.getElementById('contentGrid');
+      grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start animate-content";
+      
+      if (data.length === 0) { grid.innerHTML = `<p class="col-span-full text-center py-20 text-slate-400 font-bold uppercase tracking-widest animate-content">No members found</p>`; return; }
+
+      grid.innerHTML = data.map((stu, i) => {
+        const rank = seniorityMap[stu.session] || "";
+        let rankClass = "bg-slate-100 text-slate-500";
+        if (rank === "Junior") rankClass = "bg-green-100 text-green-700";
+        if (rank === "J Senior") rankClass = "bg-blue-100 text-blue-700";
+        if (rank === "S Senior") rankClass = "bg-purple-100 text-purple-700";
+        if (rank === "D Senior") rankClass = "bg-pink-100 text-pink-700";
+        if (rank === "Most Senior") rankClass = "bg-amber-100 text-amber-700";
+
+        return `
+        <div onclick="openModal(${membersData.indexOf(stu)})" class="id-card-light group cursor-pointer animate-content" style="animation-delay: ${Math.min(i*0.05, 0.5)}s">
+           <div class="id-side-accent"></div>
+           <img src="${stu.photo}" class="id-pfp group-hover:scale-105 transition-transform" onerror="this.src='https://ui-avatars.com/api/?name=${stu.name}'">
+           <div class="id-content">
+              <div class="flex items-start justify-between">
+                <h3 class="text-lg font-black outfit text-slate-900 group-hover:text-amber-600 transition-colors uppercase leading-tight">${stu.name}</h3>
+                <span class="text-[8px] font-black px-2 py-0.5 rounded-full ${rankClass} uppercase tracking-tighter">${rank}</span>
+              </div>
+              <p class="text-xs font-black text-slate-500 uppercase tracking-widest mt-0.5">${stu.branch || 'N/A'}</p>
+              <div class="flex items-center gap-2 mt-4">
+                 <span class="text-xs font-black px-2.5 py-1 rounded bg-slate-100 text-slate-600">${stu.session || 'BATCH'}</span>
+                 <span class="text-xs font-black px-2.5 py-1 rounded bg-amber-100 text-amber-700 tracking-tighter">${stu.room ? 'Room-'+stu.room : ''}</span>
+              </div>
+           </div>
+        </div>
+      `}).join('');
+      lucide.createIcons();
+    }
+
+    function renderSessions(dataToUse = membersData) {
+      const grid = document.getElementById('contentGrid');
+      const groups = {};
+      dataToUse.forEach(s => {
+        const key = s.session || "Alumni / Other";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+      });
+
+      const sorted = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+      grid.classList.remove('lg:grid-cols-3');
+      grid.classList.add('grid-cols-1', 'animate-content');
+
+      grid.innerHTML = sorted.map(session => {
+        const rank = seniorityMap[session] || "";
+        let rankClass = "bg-slate-50 text-slate-400";
+        if (rank === "Junior") rankClass = "bg-green-50 text-green-600";
+        if (rank === "J Senior") rankClass = "bg-blue-50 text-blue-600";
+        if (rank === "S Senior") rankClass = "bg-purple-50 text-purple-600";
+        if (rank === "D Senior") rankClass = "bg-pink-50 text-pink-600";
+
+        return `
+        <div class="space-y-6 mb-12">
+           <div class="flex items-center gap-4">
+              <h2 class="text-2xl font-black outfit text-slate-900 uppercase">${session}</h2>
+              <span class="px-3 py-1 ${rankClass} text-[10px] font-black rounded-full">${rank}</span>
+              <span class="px-3 py-1 bg-slate-50 text-slate-500 text-[10px] font-black rounded-full">${groups[session].length} Students</span>
+              <div class="h-px flex-1 bg-slate-100"></div>
+           </div>
+           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-6">
+              ${groups[session].map(stu => `
+                 <div onclick="openModal(${membersData.indexOf(stu)})" class="id-card-light bg-slate-50/50 hover:bg-white cursor-pointer transition-all group">
+                    <div class="id-side-accent opacity-30"></div>
+                    <img src="${stu.photo}" class="id-pfp w-16 h-16 ml-6 rounded-2xl" onerror="this.src='https://ui-avatars.com/api/?name=${stu.name}'">
+                    <div class="id-content !py-4">
+                       <h3 class="font-bold outfit text-slate-800 uppercase text-sm group-hover:text-amber-600 transition-colors">${stu.name}</h3>
+                       <p class="text-[10px] font-black text-slate-500 uppercase mt-0.5">${stu.branch || 'STUDENT'}</p>
+                    </div>
+                    <div class="pr-6 text-sm font-black text-amber-500 outfit">Room-${stu.room || '-'}</div>
+                 </div>
+              `).join('')}
+           </div>
+        </div>
+      `}).join('');
+    }
+
+    function renderEvents() {
+      const grid = document.getElementById('contentGrid');
+      grid.classList.remove('grid-cols-1');
+      grid.classList.add('grid-cols-1', 'md:grid-cols-2', 'animate-content');
+      
+      const mockEvents = [
+        { title: "Fresher's Night 2024", date: "Feb 12, 2024", img: "https://images.unsplash.com/photo-1541339907198-e08759393f3b?auto=format&fit=crop&w=800", desc: "A night of welcome and spectacular talent shows." },
+        { title: "Holi Celebration", date: "March 2024", img: "https://images.unsplash.com/photo-1582192732943-470a6c22f03f?auto=format&fit=crop&w=800", desc: "Colors, brotherhood, and a lot of music at the terrace." },
+        { title: "Diwali Fest", date: "Nov 2023", img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800", desc: "Lighting up B-BLOCK with 500+ diyas." },
+        { title: "B-BLOCK Cricket League", date: "Dec 2023", img: "https://images.unsplash.com/photo-1531415074941-6ef21368a284?auto=format&fit=crop&w=800", desc: "Inter-room cricket matches with massive crowds." }
+      ];
+
+      grid.innerHTML = mockEvents.map(ev => `
+        <div class="event-card group cursor-default">
+           <div class="h-48 md:h-64 overflow-hidden relative">
+              <img src="${ev.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+              <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[9px] font-black text-amber-600 uppercase tracking-widest">${ev.date}</div>
+           </div>
+           <div class="p-6 md:p-8 space-y-2">
+              <h3 class="text-xl md:text-2xl font-black outfit text-slate-900 group-hover:text-amber-600 transition-colors">${ev.title}</h3>
+              <p class="text-slate-500 text-xs leading-relaxed font-medium">${ev.desc}</p>
+              <button class="mt-4 flex items-center gap-2 text-amber-600 font-black text-[10px] uppercase tracking-widest hover:gap-3 transition-all">View Gallery <i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+           </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // 3. MODAL LOGIC
+    function openModal(idx) {
+      const stu = membersData[idx];
+      if (!stu) return;
+      document.getElementById('mImg').src = stu.photo || `https://ui-avatars.com/api/?name=${stu.name}`;
+      document.getElementById('mName').innerText = stu.name;
+      document.getElementById('mBranch').innerText = stu.branch || "Student";
+      document.getElementById('mSession').innerText = stu.session || "-";
+      document.getElementById('mRoom').innerText = stu.room ? `Room ${stu.room}` : "-";
+      
+      const inHostel = (stu.inhostel || '').toLowerCase() === 'yes';
+      const badge = document.getElementById('mStatusBadge');
+      badge.innerText = inHostel ? "Resident" : "Alumni";
+      badge.className = inHostel 
+        ? "px-3 py-1 bg-amber-400 text-slate-900 font-black text-[9px] uppercase tracking-widest rounded-full shadow-lg"
+        : "px-3 py-1 bg-slate-200 text-slate-500 font-black text-[9px] uppercase tracking-widest rounded-full shadow-lg";
+
+      let dobText = "-";
+      if (stu.dob) {
+         const d = new Date(stu.dob);
+         dobText = `${d.getDate()} ${d.toLocaleString('en-US', {month:'short'})}`;
+      }
+      document.getElementById('mDOB').innerText = dobText;
+
+      const phone = stu.phone || "";
+      document.getElementById('mCallBtn').href = `tel:${phone}`;
+      
+      document.getElementById('mSocials').innerHTML = `
+        <!-- Original WhatsApp -->
+        <a href="https://wa.me/91${phone}" target="_blank" class="w-11 h-11 flex items-center justify-center rounded-2xl bg-green-500 hover:scale-110 transition-all shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.94 3.659 1.437 5.634 1.438h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+
+        <!-- Original Instagram Gradient Style -->
+        <a href="${stu.instagram || '#'}" target="_blank" class="w-11 h-11 flex items-center justify-center rounded-2xl bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:scale-110 transition-all shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        </a>
+      `;
+      
+      const modal = document.getElementById('stuModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.add('opacity-100'), 10);
+      setTimeout(() => document.getElementById('stuBox').classList.remove('scale-95'), 10);
+      lucide.createIcons();
+    }
+
+    async function downloadStudentPhoto() {
+      const card = document.getElementById('stuBox');
+      const name = document.getElementById('mName').innerText;
+      const downloadBtn = document.querySelector('[title="Download Photo"]');
+      
+      const originalBtnContent = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = `<div class="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>`;
+      downloadBtn.disabled = true;
+
+      try {
+        // We use html2canvas to capture the #stuBox element
+        const canvas = await html2canvas(card, {
+          useCORS: true,
+          backgroundColor: null,
+          scale: 2, // Higher quality
+          logging: false,
+          ignoreElements: (el) => el.tagName === 'BUTTON' // Don't download the buttons
+        });
+
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name.replace(/\s+/g, '_')}_ID_CARD.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (err) {
+        // error logic hidden for production
+        alert("Failed to generate ID card image. Please try again.");
+      } finally {
+        downloadBtn.innerHTML = originalBtnContent;
+        downloadBtn.disabled = false;
+      }
+    }
+
+    function closeModal(e) {
+      const modal = document.getElementById('stuModal');
+      modal.classList.remove('opacity-100');
+      document.getElementById('stuBox').classList.add('scale-95');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    // INITIAL LOAD
+    window.onload = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const view = urlParams.get('view') || 'active'; // Default to active
+      switchView(view);
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

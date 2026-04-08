@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>B-BLOCK | Student Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- AI Face Focus -->
+  <script src="https://cdn.jsdelivr.net/npm/smartcrop@2.0.5/smartcrop.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f1f5f9; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+    .fade-in { opacity: 0; transform: translateY(12px); animation: fadeIn .5s ease-out forwards; }
+    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  
+  <div class="bg-white rounded-[2rem] max-w-lg w-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-8 md:p-10 relative fade-in border border-slate-100">
+    
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 bg-amber-400 rounded-2xl flex items-center justify-center font-black text-slate-900 shadow-lg shadow-amber-200">B</div>
+      <div>
+        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Student Registration</h2>
+        <p class="text-[11px] text-slate-500 font-medium uppercase tracking-widest">B-BLOCK Administration</p>
+      </div>
+    </div>
+
+    <p class="text-sm text-slate-600 mb-8 leading-relaxed">
+      Please fill in your details accurately. Your photo should be clear.
+    </p>
+
+    <form id="studentForm" class="space-y-5" onsubmit="event.preventDefault(); saveStudent();">
+      
+      <!-- Row 1 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
+          <input id="f_name" type="text" placeholder="Ayush Srivastava" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Room No</label>
+          <input id="f_room" type="text" placeholder="C1, 5" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Branch</label>
+          <input id="f_branch" type="text" placeholder="Computer Science" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Session</label>
+          <input id="f_session" type="text" placeholder="2022-25" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Date of Birth</label>
+          <input id="f_dob" type="date" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Phone Number</label>
+          <input id="f_phone" type="tel" placeholder="10 Digit Number" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+        </div>
+      </div>
+
+      <!-- Row 4 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">At Hostel Now?</label>
+          <select id="f_inHostel" required 
+            class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50">
+            <option value="">Select Option</option>
+            <option value="yes" selected>Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Passport Photo</label>
+          <input id="f_photo" type="file" accept="image/*" 
+            class="w-full border border-dashed border-slate-300 rounded-2xl px-3 py-2 text-[11px] focus:outline-none bg-slate-50/50 hover:bg-slate-100 transition-colors cursor-pointer" />
+        </div>
+      </div>
+
+      <!-- Optional Instagram Field -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Instagram ID / Link (Optional)</label>
+        <input id="f_insta" type="text" placeholder="@username or profile link" 
+          class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-400/20 focus:border-amber-400 transition-all bg-slate-50/50" />
+      </div>
+
+      <!-- Status Messages -->
+      <div id="formError" class="text-[11px] text-red-500 font-bold min-h-[14px]"></div>
+      <div id="formSuccess" class="text-[11px] text-green-600 font-bold min-h-[14px]"></div>
+
+      <!-- Action Button -->
+      <div class="pt-4">
+        <button id="saveBtn" type="submit" 
+          class="w-full bg-slate-900 text-white text-xs font-black rounded-2xl py-4 shadow-xl shadow-slate-200 hover:bg-black hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest">
+          Submit data to Cloud
+        </button>
+      </div>
+    </form>
+    
+    <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+      <p class="text-[9px] text-slate-400 font-black uppercase tracking-[0.3em]">Official B-BLOCK Onboarding</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://srqdvxmektxxvucehxow.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_Ed61_7Gok7xocUeCRQ5Oqg_G2QxKLu6";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function processImageAI(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = async () => {
+            try {
+              const result = await smartcrop.crop(img, { width: 600, height: 800 });
+              const crop = result.topCrop;
+              const canvas = document.createElement("canvas");
+              canvas.width = 600; canvas.height = 800;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
+            } catch (err) { resolve(file); }
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveStudent() {
+      const name = document.getElementById("f_name").value.trim();
+      const room = document.getElementById("f_room").value.trim();
+      const branch = document.getElementById("f_branch").value.trim();
+      const session = document.getElementById("f_session").value.trim();
+      const dob = document.getElementById("f_dob").value;
+      const phone = document.getElementById("f_phone").value.trim();
+      const inHostel = document.getElementById("f_inHostel").value;
+      const insta = document.getElementById("f_insta").value.trim();
+      const photoFile = document.getElementById("f_photo").files[0];
+      
+      const err = document.getElementById("formError");
+      const success = document.getElementById("formSuccess");
+      const saveBtn = document.getElementById("saveBtn");
+
+      err.textContent = "";
+      success.textContent = "";
+
+      if (!name || !room || !branch || !session || !dob || !phone || !inHostel) {
+        err.textContent = "✕ Please fill all required fields.";
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "SYNCING TO DATABASE...";
+
+      // --- Formatting ---
+      const fixedName = name.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      const fixedRoom = room.toUpperCase(); // c1 -> C1
+      
+      let fixedBranch = branch.toLowerCase().trim();
+      if (fixedBranch.includes("computer")) fixedBranch = "CSE";
+      else if (fixedBranch.includes("mech") || fixedBranch === "me") fixedBranch = "MECHANICAL";
+      else if (fixedBranch.includes("elect")) fixedBranch = "EE";
+      else if (fixedBranch.includes("civil") || fixedBranch === "ce") fixedBranch = "CIVIL";
+      else fixedBranch = fixedBranch.toUpperCase();
+
+      let fixedSession = session.replace(/\D/g, " ").split(" ").filter(Boolean);
+      if (fixedSession.length >= 2) {
+        let start = fixedSession[0]; let end = fixedSession[1];
+        if (start.length === 2) start = "20" + start;
+        if (end.length === 4) end = end.slice(2);
+        fixedSession = `${start}-${end}`;
+      } else {
+        fixedSession = session;
+      }
+
+      try {
+        // [DUPLICATE CHECK REMOVED AS PER OPTION 2]
+
+        // Photo Upload (with AI Focus)
+        let photoURL = null;
+        if (photoFile) {
+          saveBtn.textContent = "AI FOCUSING PHOTO...";
+          const aiFramedPhoto = await processImageAI(photoFile);
+          
+          const fileName = `${Date.now()}_registration.jpg`;
+          const { error: upErr } = await supabaseClient.storage.from("students").upload(`photos/${fileName}`, aiFramedPhoto, {
+            contentType: 'image/jpeg'
+          });
+          if (upErr) throw new Error("Photo upload failed.");
+          photoURL = `${SUPABASE_URL}/storage/v1/object/public/students/photos/${fileName}`;
+        }
+
+        // Insert
+        const { error: insErr } = await supabaseClient.from("students").insert([{
+          name: fixedName, 
+          room: fixedRoom, 
+          branch: fixedBranch, 
+          session: fixedSession, 
+          dob, 
+          phone, 
+          inhostel: inHostel, 
+          instagram: insta, 
+          photo: photoURL
+        }]);
+
+        if (insErr) throw insErr;
+
+        success.textContent = "✓ Student added successfully!";
+        document.getElementById("studentForm").reset();
+      } catch (e) {
+        err.textContent = "✕ " + e.message;
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "SUBMIT DATA TO CLOUD";
+      }
+    }
+  </script>
+</body>
+</html>
